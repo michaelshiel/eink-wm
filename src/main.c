@@ -615,18 +615,21 @@ int main(int argc, char* argv[]) {
 		"}";
 
 	const char* fragment_shader_source = "#version 330\n"
-		"in vec2 local_position;"
-		"out vec4 fragment_colour;"
+	  "in vec2 local_position;"
+	  "out vec4 fragment_colour;"
+	  
+	  "uniform float opacity;"
+	  "uniform sampler2D texture_sampler;"
+	  
+	  "void main(void) {"
+	  "   vec4 colour = texture(texture_sampler, local_position * vec2(1.0, -1.0) + vec2(0.5));"
+	  "   float alpha = opacity * (1.0 - colour.a);"
+	  "   vec3 grayscale = vec3(dot(colour.rgb, vec3(0.299, 0.587, 0.114)));"
+	  "   vec3 color_resolution = vec3(16.0, 16.0, 16.0);"
+	  "vec3 color_bands = floor(grayscale * color_resolution) / (color_resolution - 1.0);"
 
-		"uniform float opacity;"
-		"uniform sampler2D texture_sampler;"
-
-		"void main(void) {"
-		"   vec4 colour = texture(texture_sampler, local_position * vec2(1.0, -1.0) + vec2(0.5));"
-		"	float alpha = opacity * (1.0 - colour.a);"
-
-		"	fragment_colour = vec4(colour.rgb, alpha);"
-		"}";
+	  "   fragment_colour = vec4(min(color_bands, 1.0), alpha);"
+	  "}"; 
 
 	wm->shader = gl_create_shader_program(vertex_shader_source, fragment_shader_source);
 	wm->texture_uniform = glGetUniformLocation(wm->shader, "texture_sampler");
